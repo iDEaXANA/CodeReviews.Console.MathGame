@@ -105,8 +105,6 @@ while (true)
                     Console.WriteLine($"What is {dividend} {operatorInput} {secondNumber}?");
                     gameTimer.Start();
                     operatorResult = GetUserAnswer();
-
-
                 }
                 else if (operatorInput == "+" || operatorInput == "-" || operatorInput == "*")
                 {
@@ -114,23 +112,21 @@ while (true)
                     Console.WriteLine($"What is {firstNumber} {operatorInput} {secondNumber}?");
                     gameTimer.Start();
                     operatorResult = GetUserAnswer();
-
                 }
                 else
                 {
                     Console.WriteLine("Invalid Operator. Please choose from the keys displayed on the screen.");
                     continue;
-
                 }
                 if (operatorResult == result)
                 {
-                    gameTimer.Restart();
+                    gameTimer.Stop();
                     score++;
                     Console.WriteLine("That is the correct answer!");
                 }
                 else
                 {
-                    score = 0;
+                    score --;
                     Console.WriteLine("That is the wrong answer! Your score streak has been reset. The timer continues!");
                 }
 
@@ -138,10 +134,9 @@ while (true)
                 Console.WriteLine(displayResult);
                 Console.WriteLine($" Score: {score}");
                 Console.WriteLine($"Time taken: {gameTimer.Elapsed.TotalSeconds:F2}s ");
+                gameTimer.Restart();
                 saveStore.Add(displayResult);
                 boolFlag = false;
-                // Once answered, game should be reset to ask for New or saved games
-                // Game should generate new numbers.
             }
             else
             {
@@ -172,14 +167,6 @@ while (true)
 
 /*
  WORK LEFT:
-
- *Timer specification:
- *When operator is chosen
- *Ends when value is inputted
- * If answer is incorrect then do not reset timer
- * if answer is correct then store timer in separate List and calculate an average over number of hard mode games played.
- *COMMIT
- 
  *AI Challenge
  *COMMIT
 */
