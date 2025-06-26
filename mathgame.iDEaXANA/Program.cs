@@ -1,4 +1,5 @@
-﻿static string GetUserInputs()
+﻿using System.Diagnostics;
+static string GetUserInputs()
 {
     Console.WriteLine("Please pick your operators by pressing the corresponding key on your keyboard");
     Console.WriteLine("+");
@@ -39,7 +40,6 @@ static int GetUserAnswer()
     Console.WriteLine("Invalid input. Please enter a valid number.");
     return GetUserAnswer();
 }
-
 
 List<string> saveStore = new List<string>();
 Console.WriteLine("New Game");
@@ -85,55 +85,69 @@ while (true)
             continue;
         }
 
-        Console.WriteLine("Pick a difficulty Easy(E) or Hard(H)?");
-        string? difficultyLevel = Console.ReadLine();
-        if (difficultyLevel == "e" || difficultyLevel == "E")
+        var boolFlag = true;
+        while (boolFlag)
         {
-            var displayResult = GetDisplayResult(firstNumber, operatorInput, secondNumber, dividend, result);
-            Console.WriteLine(displayResult);
-            saveStore.Add(displayResult);
-        }
-        else if (difficultyLevel == "h" || difficultyLevel == "H")
-        {
-
-            if (operatorInput == "/")
+            Console.WriteLine("Pick a difficulty Easy(E) or Hard(H)?");
+            string? difficultyLevel = Console.ReadLine();
+            if (difficultyLevel == "e" || difficultyLevel == "E")
             {
-                Console.WriteLine($"What is {dividend} {operatorInput} {secondNumber}?");
-                operatorResult = GetUserAnswer();
-
+                var displayResult = GetDisplayResult(firstNumber, operatorInput, secondNumber, dividend, result);
+                Console.WriteLine(displayResult);
+                saveStore.Add(displayResult);
+                boolFlag = false; 
             }
-            else if (operatorInput == "+" || operatorInput == "-" || operatorInput == "*")
+            else if (difficultyLevel == "h" || difficultyLevel == "H")
             {
-                Console.WriteLine($"What is {firstNumber} {operatorInput} {secondNumber}?");
-                operatorResult = GetUserAnswer();
+                Stopwatch gameTimer = new Stopwatch();
+                if (operatorInput == "/")
+                {
+                    Console.WriteLine($"What is {dividend} {operatorInput} {secondNumber}?");
+                    gameTimer.Start();
+                    operatorResult = GetUserAnswer();
+
+
+                }
+                else if (operatorInput == "+" || operatorInput == "-" || operatorInput == "*")
+                {
+
+                    Console.WriteLine($"What is {firstNumber} {operatorInput} {secondNumber}?");
+                    gameTimer.Start();
+                    operatorResult = GetUserAnswer();
+
+                }
+                else
+                {
+                    Console.WriteLine("Invalid Operator. Please choose from the keys displayed on the screen.");
+                    continue;
+
+                }
+                if (operatorResult == result)
+                {
+                    gameTimer.Restart();
+                    score++;
+                    Console.WriteLine("That is the correct answer!");
+                }
+                else
+                {
+                    score = 0;
+                    Console.WriteLine("That is the wrong answer! Your score streak has been reset. The timer continues!");
+                }
+
+                var displayResult = GetDisplayResult(firstNumber, operatorInput, secondNumber, dividend, result);
+                Console.WriteLine(displayResult);
+                Console.WriteLine($" Score: {score}");
+                Console.WriteLine($"Time taken: {gameTimer.Elapsed.TotalSeconds:F2}s ");
+                saveStore.Add(displayResult);
+                boolFlag = false;
+                // Once answered, game should be reset to ask for New or saved games
+                // Game should generate new numbers.
             }
             else
             {
-                Console.WriteLine("Invalid Operator. Please choose from the keys displayed on the screen.");
-                continue;
+                Console.WriteLine("Invalid difficulty level. Please choose 'E' for Easy or 'H' for Hard.");
             }
-
-            if (operatorResult == result)
-            {
-                score++;
-                Console.WriteLine("That is the correct answer!");
-            }
-            else
-            {
-                score = 0;
-                Console.WriteLine("That is the wrong answer! Your score streak has been reset");
-            }
-            var displayResult = GetDisplayResult(firstNumber, operatorInput, secondNumber, dividend, result);
-            Console.WriteLine(displayResult);
-            Console.WriteLine($" Score: {score}");
-            saveStore.Add(displayResult);
         }
-        else
-        {
-            Console.WriteLine("Invalid difficulty level. Please choose 'E' for Easy or 'H' for Hard.");
-            continue;
-        }
-
     }
     else if (userInput == "s" || userInput == "S")
     {
@@ -159,9 +173,11 @@ while (true)
 /*
  WORK LEFT:
 
- *Add a timer:
- *When game starts
- *Ends when value matches correctly.
+ *Timer specification:
+ *When operator is chosen
+ *Ends when value is inputted
+ * If answer is incorrect then do not reset timer
+ * if answer is correct then store timer in separate List and calculate an average over number of hard mode games played.
  *COMMIT
  
  *AI Challenge
