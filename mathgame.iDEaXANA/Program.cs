@@ -1,4 +1,6 @@
 ﻿using System.Diagnostics;
+
+
 static string GetUserInputs()
 {
     Console.WriteLine("Please pick your operators by pressing the corresponding key on your keyboard");
@@ -7,8 +9,7 @@ static string GetUserInputs()
     Console.WriteLine("*");
     Console.WriteLine("/");
 
-    string operatorInput = Console.ReadLine();
-    return operatorInput;
+    return Console.ReadLine() ?? throw new InvalidOperationException("Correct input required");
 }
 
 static (int firstNumber, int secondNumber, int dividend) GetRandomNumbers()
@@ -19,6 +20,30 @@ static (int firstNumber, int secondNumber, int dividend) GetRandomNumbers()
     int dividend = rnd.Next(1, 101);
 
     return (firstNumber, secondNumber, dividend);
+}
+static int CalculateResult(
+    string operatorInput,
+    ref int firstNumber,
+    ref int secondNumber,
+    ref int dividend)
+{
+    switch (operatorInput)
+    {
+        case "+":
+            return firstNumber + secondNumber;
+        case "-":
+            return firstNumber - secondNumber;
+        case "*":
+            return firstNumber * secondNumber;
+        case "/":
+            while (dividend % secondNumber != 0)
+            {
+                (firstNumber, secondNumber, dividend) = GetRandomNumbers();
+            }
+            return dividend / secondNumber;
+        default:
+            throw new ArgumentException("Invalid operator. Please choose from +, -, *, /.");
+    }
 }
 
 static string GetDisplayResult(int firstNumber, string operatorInput, int secondNumber, int dividend, int result)
@@ -53,37 +78,11 @@ while (true)
     string? userInput = Console.ReadLine();
 
     int result;
-    if (userInput == "n" || userInput == "N")
+    if (string.Equals(userInput, "n", StringComparison.OrdinalIgnoreCase))
     {
         string operatorInput = GetUserInputs();
         (int firstNumber, int secondNumber, int dividend) = GetRandomNumbers();
-        if (operatorInput == "+")
-        {
-            // Do operation
-            result = firstNumber + secondNumber;
-        }
-        else if (operatorInput == "-")
-        {
-            result = firstNumber - secondNumber;
-
-        }
-        else if (operatorInput == "*")
-        {
-            result = firstNumber * secondNumber;
-        }
-        else if (operatorInput == "/")
-        {
-            while (dividend % secondNumber != 0)
-            {
-                (firstNumber, secondNumber, dividend) = GetRandomNumbers();
-            }
-            result = dividend / secondNumber;
-        }
-        else
-        {
-            Console.WriteLine("Invalid Operator. Please choose from the keys displayed on the screen.");
-            continue;
-        }
+        result = CalculateResult(operatorInput, ref firstNumber, ref secondNumber, ref dividend);
 
         var boolFlag = true;
         while (boolFlag)
@@ -97,7 +96,7 @@ while (true)
                 saveStore.Add(displayResult);
                 boolFlag = false; 
             }
-            else if (difficultyLevel == "h" || difficultyLevel == "H")
+            else if (string.Equals(difficultyLevel, "h", StringComparison.OrdinalIgnoreCase))
             {
                 Stopwatch gameTimer = new Stopwatch();
                 if (operatorInput == "/")
@@ -108,7 +107,6 @@ while (true)
                 }
                 else if (operatorInput == "+" || operatorInput == "-" || operatorInput == "*")
                 {
-
                     Console.WriteLine($"What is {firstNumber} {operatorInput} {secondNumber}?");
                     gameTimer.Start();
                     operatorResult = GetUserAnswer();
@@ -144,7 +142,7 @@ while (true)
             }
         }
     }
-    else if (userInput == "s" || userInput == "S")
+    else if (string.Equals(userInput, "s", StringComparison.OrdinalIgnoreCase))
     {
         if (saveStore.Count == 0)
         {
@@ -164,10 +162,4 @@ while (true)
         Console.WriteLine("Please pick a valid entry key");
     }
 }
-
-/*
- WORK LEFT:
- *AI Challenge
- *COMMIT
-*/
 
