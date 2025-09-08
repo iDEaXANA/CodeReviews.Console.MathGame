@@ -94,7 +94,7 @@ while (true)
                 var displayResult = GetDisplayResult(firstNumber, operatorInput, secondNumber, dividend, result);
                 Console.WriteLine(displayResult);
                 saveStore.Add(displayResult);
-                boolFlag = false; 
+                boolFlag = false;
             }
             else if (string.Equals(difficultyLevel, "h", StringComparison.OrdinalIgnoreCase))
             {
@@ -124,7 +124,7 @@ while (true)
                 }
                 else
                 {
-                    score --;
+                    score--;
                     Console.WriteLine("That is the wrong answer! Your score streak has been reset. The timer continues!");
                 }
 
