@@ -19,8 +19,7 @@ internal static class mathGame
 
             if (string.Equals(userInput, "n", StringComparison.OrdinalIgnoreCase))
             {
-                bool isTrue = true;
-                while (isTrue)
+                while (true)
                 {
                     char operatorInput = ReadOperator();
                     var difficultyLevel = ReadDifficulty();
@@ -38,7 +37,6 @@ internal static class mathGame
                         $"Time: {round.elapsed.TotalSeconds:F2}s | Score: {score}");
 
                     EnterKeyOrCountdownThenClear(5);
-                    isTrue = false;
                     break; 
                 }
 
