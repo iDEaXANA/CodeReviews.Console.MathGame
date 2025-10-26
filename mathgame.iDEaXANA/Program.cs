@@ -1,7 +1,6 @@
 ﻿using System.Diagnostics;
-using System.Text;
 
-internal static class mathGame
+internal static class MathGame
 {
     private static readonly Random Rng = new Random();
 
