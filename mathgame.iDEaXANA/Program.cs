@@ -1,165 +1,219 @@
 ﻿using System.Diagnostics;
+using System.Text;
 
-
-static string GetUserInputs()
+internal static class mathGame
 {
-    Console.WriteLine("Please pick your operators by pressing the corresponding key on your keyboard");
-    Console.WriteLine("+");
-    Console.WriteLine("-");
-    Console.WriteLine("*");
-    Console.WriteLine("/");
+    private static readonly Random Rng = new Random();
 
-    return Console.ReadLine() ?? throw new InvalidOperationException("Correct input required");
-}
-
-static (int firstNumber, int secondNumber, int dividend) GetRandomNumbers()
-{
-    Random rnd = new Random();
-    int firstNumber = rnd.Next(1, 10);
-    int secondNumber = rnd.Next(1, 10);
-    int dividend = rnd.Next(1, 101);
-
-    return (firstNumber, secondNumber, dividend);
-}
-static int CalculateResult(
-    string operatorInput,
-    ref int firstNumber,
-    ref int secondNumber,
-    ref int dividend)
-{
-    switch (operatorInput)
+    static void Main()
     {
-        case "+":
-            return firstNumber + secondNumber;
-        case "-":
-            return firstNumber - secondNumber;
-        case "*":
-            return firstNumber * secondNumber;
-        case "/":
-            while (dividend % secondNumber != 0)
-            {
-                (firstNumber, secondNumber, dividend) = GetRandomNumbers();
-            }
-            return dividend / secondNumber;
-        default:
-            throw new ArgumentException("Invalid operator. Please choose from +, -, *, /.");
-    }
-}
+        List<string> saveStore = new List<string>();
+        Console.WriteLine("New Game");
+        Console.WriteLine("Saved Games");
+        int score = 0;
 
-static string GetDisplayResult(int firstNumber, string operatorInput, int secondNumber, int dividend, int result)
-{
-    if (operatorInput == "/")
-    {
-        return $"{dividend} {operatorInput} {secondNumber} = {result}";
-    }
-    return $"{firstNumber} {operatorInput} {secondNumber} = {result}";
-}
-
-static int GetUserAnswer()
-{
-    string? resultInput = Console.ReadLine();
-    if (int.TryParse(resultInput, out int userAnswer))
-    {
-        return userAnswer;
-    }
-    Console.WriteLine("Invalid input. Please enter a valid number.");
-    return GetUserAnswer();
-}
-
-List<string> saveStore = new List<string>();
-Console.WriteLine("New Game");
-Console.WriteLine("Saved Games");
-int score = 0;
-int operatorResult;
-
-while (true)
-{
-    Console.WriteLine("Press the 'N' key to start a new game or the 'S' key to view saved games");
-    string? userInput = Console.ReadLine();
-
-    int result;
-    if (string.Equals(userInput, "n", StringComparison.OrdinalIgnoreCase))
-    {
-        string operatorInput = GetUserInputs();
-        (int firstNumber, int secondNumber, int dividend) = GetRandomNumbers();
-        result = CalculateResult(operatorInput, ref firstNumber, ref secondNumber, ref dividend);
-
-        var boolFlag = true;
-        while (boolFlag)
+        while (true)
         {
-            Console.WriteLine("Pick a difficulty Easy(E) or Hard(H)?");
-            string? difficultyLevel = Console.ReadLine();
-            if (difficultyLevel == "e" || difficultyLevel == "E")
+            Console.WriteLine("Press the 'N' key to start a new game or the 'S' key to view saved games");
+            string? userInput = Console.ReadLine();
+
+            if (string.Equals(userInput, "n", StringComparison.OrdinalIgnoreCase))
             {
-                var displayResult = GetDisplayResult(firstNumber, operatorInput, secondNumber, dividend, result);
-                Console.WriteLine(displayResult);
-                saveStore.Add(displayResult);
-                boolFlag = false;
+                bool isTrue = true;
+                while (isTrue)
+                {
+                    char operatorInput = ReadOperator();
+                    var difficultyLevel = ReadDifficulty();
+                    var round = PlayRound(difficultyLevel, operatorInput, score);
+                    score = round.updatedScore;
+
+                    Console.WriteLine($"{difficultyLevel.Name}: {round.question}");
+                    Console.WriteLine($"Score: {score}");
+                    Console.WriteLine($"Time taken: {round.elapsed.TotalSeconds:F2}s");
+                    Console.WriteLine(round.correct);
+
+                    saveStore.Add(
+                        $"{difficultyLevel.Name}: {round.question.Left} {round.question.Operator} {round.question.Right} = {round.question.Answer} | " +
+                        $"Your answer: {round.userAnswer} | {(round.correct ? "Correct" : "Incorrect")} | " +
+                        $"Time: {round.elapsed.TotalSeconds:F2}s | Score: {score}");
+
+                    EnterKeyOrCountdownThenClear(5);
+                    isTrue = false;
+                    break; 
+                }
+
             }
-            else if (string.Equals(difficultyLevel, "h", StringComparison.OrdinalIgnoreCase))
+            else if (string.Equals(userInput, "s", StringComparison.OrdinalIgnoreCase))
             {
-                Stopwatch gameTimer = new Stopwatch();
-                if (operatorInput == "/")
+                if (saveStore.Count == 0)
                 {
-                    Console.WriteLine($"What is {dividend} {operatorInput} {secondNumber}?");
-                    gameTimer.Start();
-                    operatorResult = GetUserAnswer();
-                }
-                else if (operatorInput == "+" || operatorInput == "-" || operatorInput == "*")
-                {
-                    Console.WriteLine($"What is {firstNumber} {operatorInput} {secondNumber}?");
-                    gameTimer.Start();
-                    operatorResult = GetUserAnswer();
-                }
-                else
-                {
-                    Console.WriteLine("Invalid Operator. Please choose from the keys displayed on the screen.");
+                    Console.WriteLine("A game must be played first");
+                    EnterKeyOrCountdownThenClear(2);
                     continue;
                 }
-                if (operatorResult == result)
+
+                int counter = 1;
+                foreach (string entry in saveStore)
                 {
-                    gameTimer.Stop();
-                    score++;
-                    Console.WriteLine("That is the correct answer!");
-                }
-                else
-                {
-                    score--;
-                    Console.WriteLine("That is the wrong answer! Your score streak has been reset. The timer continues!");
+
+                    Console.WriteLine($"Game No.{counter}: \"{entry}\"");
+                    counter++;
                 }
 
-                var displayResult = GetDisplayResult(firstNumber, operatorInput, secondNumber, dividend, result);
-                Console.WriteLine(displayResult);
-                Console.WriteLine($" Score: {score}");
-                Console.WriteLine($"Time taken: {gameTimer.Elapsed.TotalSeconds:F2}s ");
-                gameTimer.Restart();
-                saveStore.Add(displayResult);
-                boolFlag = false;
+                EnterKeyOrCountdownThenClear(10);
             }
             else
             {
-                Console.WriteLine("Invalid difficulty level. Please choose 'E' for Easy or 'H' for Hard.");
+                Console.WriteLine("Please pick a valid entry key");
             }
         }
-    }
-    else if (string.Equals(userInput, "s", StringComparison.OrdinalIgnoreCase))
-    {
-        if (saveStore.Count == 0)
-        {
-            Console.WriteLine("A game must be played first");
-            continue;
-        }
-        int counter = 1;
-        foreach (string entry in saveStore)
-        {
 
-            Console.WriteLine($"Game No.{counter}: \"{entry}\"");
-            counter++;
+    }
+
+    /* Types & Config */
+    struct Question
+    {
+        public int Left;
+        public int Right;
+        public char Operator;
+
+        public int Answer => Operator switch
+        {
+            '+' => Left + Right,
+            '-' => Left - Right,
+            '*' => Left * Right,
+            '/' => Left / Right,
+            _ => throw new InvalidOperationException("Invalid operator")
+        };
+        public override string ToString() => $"{Left} {Operator} {Right} = {Answer}";
+    }
+
+    record Difficulty(string Name, int Min, int Max, int minDivisor, int maxDivisor);
+
+    static readonly Difficulty Easy = new("Easy", 1, 50, 2, 12);
+    static readonly Difficulty Hard = new("Hard", 50, 250, 3, 20);
+
+    /* Helpers */
+    static Question GenerateQuestion(char op, int min, int max, int minDivisor, int maxDivisor)
+    {
+        switch (op)
+        {
+            case '+':
+            case '*':
+            case '-':
+                return new Question
+                {
+                    Left = Rng.Next(min, max + 1),
+                    Right = Rng.Next(min, max + 1),
+                    Operator = op
+                };
+
+            case '/':
+
+                int divisor = Rng.Next(minDivisor, maxDivisor + 1);
+                int quotient = Rng.Next(min, max + 1);
+
+                int dividend = divisor * quotient;
+
+                return new Question
+                {
+                    Left = dividend,
+                    Right = divisor,
+                    Operator = '/'
+                };
+            default:
+                throw new ArgumentException("Invalid Operator Choose one of +, *, -, /");
         }
     }
-    else
+
+    static (bool correct, TimeSpan elapsed, Question question, int updatedScore, int userAnswer) PlayRound(Difficulty difficulty, char op, int currentScore)
     {
-        Console.WriteLine("Please pick a valid entry key");
+        var question = GenerateQuestion(op, difficulty.Min, difficulty.Max, difficulty.minDivisor, difficulty.maxDivisor);
+        if (difficulty == Easy)
+        {
+            while (op == '/' && question.Left > 144)
+            {
+                question = GenerateQuestion(op, difficulty.Min, difficulty.Max, difficulty.minDivisor, difficulty.maxDivisor);
+            }
+        }
+        else
+        {
+            while (op == '/' && question.Left > 1000)
+            {
+                question = GenerateQuestion(op, difficulty.Min, difficulty.Max, difficulty.minDivisor, difficulty.maxDivisor);
+            }
+        }
+        Console.WriteLine($"What is {question.Left} {op} {question.Right}?");
+
+        var stopWatch = Stopwatch.StartNew();
+        int userAnswer = ReadIntFromConsole();
+        stopWatch.Stop();
+
+        bool correct = userAnswer == question.Answer;
+        int newScore = currentScore + (correct ? 1 : -1);
+
+        if (correct) Console.WriteLine("That answer is corrrrrrrect!");
+        else Console.WriteLine($"Sorry, the correct answer is {question.Answer}");
+
+        return (correct, stopWatch.Elapsed, question, newScore, userAnswer);
     }
+
+    static int ReadIntFromConsole()
+    {
+        while (true)
+        {
+            string? s = Console.ReadLine();
+            if (int.TryParse(s, out var n)) return n;
+            Console.WriteLine("Invalid Number. try again");
+        }
+    }
+    static char ReadOperator()
+    {
+        Console.WriteLine("Pick an operator: +, -, *, /");
+        while (true)
+        {
+            string? s = Console.ReadLine();
+            if (!string.IsNullOrWhiteSpace(s))
+            {
+                char c = s.Trim()[0];
+                if (c is '+' or '-' or '*' or '/') return c;
+            }
+
+            Console.WriteLine("Please type one of + - * / and Press Enter");
+        }
+    }
+
+    static Difficulty ReadDifficulty()
+    {
+        Console.WriteLine("Pick a difficulty Easy(E) or Hard(H)?");
+
+        while (true)
+        {
+            string? s = Console.ReadLine();
+            if (!string.IsNullOrWhiteSpace(s))
+            {
+                char c = char.ToUpperInvariant(s.Trim()[0]);
+                if (c == 'E') return Easy;
+                if (c == 'H') return Hard;
+            }
+            Console.WriteLine("Please press E for Easy or H for Hard.");
+        }
+    }
+    static void EnterKeyOrCountdownThenClear(int seconds)
+    {
+
+        for (int s = seconds; s > 0; s--)
+        {
+            Console.Write($"\rPress any key to continue. Clearing console in {s}...");
+            Thread.Sleep(1000);
+            if (Console.KeyAvailable)
+            {
+                Console.WriteLine();
+                Console.Clear();
+                break; 
+            }
+        }
+        Console.Clear();
+    }
+
 }
-
